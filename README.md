@@ -1,14 +1,14 @@
-# Jev plays
+# Jev plays game theory
 
-A small tournament and replay app for Jev playing the iterated prisoner’s dilemma.
+An analysis page and match archive for Jev playing the iterated prisoner’s dilemma.
 
 **Stack:** Python / FastAPI / SQLite; React / TypeScript / Vite / Recharts.
 
 ## Open the results
 
-The app is running on port **8931**. [Open the tournament](https://mayank--8931.getbb.app). See [the first run](docs/first-run.md) for the recorded findings.
+The app is running on port **8931**. [Open the analysis](https://mayank--8931.getbb.app). See [the first run](docs/first-run.md) for the recorded findings.
 
-The dashboard includes a player leaderboard with total points, W/L/D, and average points per round, score and cooperation charts, a match archive, round replay, and each call’s exact state, criteria, probabilities, and raw response. JSON and CSV exports are available from the dashboard. Browsing is read-only and makes no Jev calls.
+The page introduces the game and experiment, presents concise findings alongside score and cooperation charts, and explains the environment constraints and observed strategy patterns. The player leaderboard includes Jev and all opponents, ranked by each player’s average points per round, with a W/D/L record from that player’s perspective. The match archive opens at the final round and supports replay from the beginning, with each call’s exact state, criteria, probabilities, and raw response. JSON and CSV exports are available from the page. Browsing is read-only and makes no Jev calls.
 
 ## Run locally
 
@@ -38,7 +38,26 @@ To run new matches, put `TYPESAFE_API_KEY` in `.env.local`. It stays on the serv
 .venv/bin/python -m server.cli export RUN_ID data/export.json
 ```
 
-Run only one runner for a given run at a time. The dashboard can remain open while the CLI runs; new page loads include the new run and active runs update live. The default request cap is 1,100 attempts. Calls have 30-second timeouts, at most three attempts, and at most four concurrent requests. Authentication and invalid-response errors stop that match without retries. An interrupted request whose response was never saved may need another API call on resume.
+Run only one runner for a given run at a time. Published experiments are listed in `web/src/experiments.ts`. Add a saved run ID, experiment number, recorded analysis snapshot, and its own findings and constraints there, then rebuild to include it in the header selector. The Experiment 0 snapshot in `web/src/recorded/experiment-0.json` contains the 40 matches’ recorded moves, both players’ cumulative scores, and the primary Jev seat’s choice probabilities and confidence. The cooperation-by-round, move-pattern, reward, self-play, and preference figures are calculated from this snapshot; new model calls are not needed to render them. The connection-check run remains stored but is excluded from the page. Published active runs update live. The default request cap is 1,100 attempts. Calls have 30-second timeouts, at most three attempts, and at most four concurrent requests. Authentication and invalid-response errors stop that match without retries. An interrupted request whose response was never saved may need another API call on resume.
+
+## Deploy to Vercel
+
+Vercel serves the built page and a static copy of the published results. It needs no Python server, database, API key, or Jev calls. The checked-in files under `web/public/recorded/` contain Experiment 0’s run summary, all 40 replays with exact inputs and responses, and the CSV and JSON downloads. Only explicitly selected runs are exported.
+
+To refresh the public data after recording a new experiment:
+
+```bash
+.venv/bin/python -m server.publish --run-id 33654f59990b
+```
+
+Repeat `--run-id` for every experiment that should remain published, and add its analysis snapshot and metadata to `web/src/experiments.ts`. The exporter opens SQLite read-only, verifies each completed run, and removes previously generated files for runs no longer selected.
+
+```bash
+vercel link --project game-theory-with-jev --scope mayank12 --yes
+vercel --prod --yes
+```
+
+The root `vercel.json` installs and builds `web`, maps the existing read APIs to static JSON, preserves direct match URLs, and marks exports as downloads. `.vercelignore` excludes local credentials, the database, and the experiment runner. Starting or resuming experiments remains a local CLI operation.
 
 ## Experiment
 
@@ -53,7 +72,7 @@ Jev plays five independent, 20-round matches against each of:
 - Win–Stay, Lose–Shift
 - Another Jev
 
-Only matches involving Jev are scheduled. This is a matchup experiment, not a reproduction of Axelrod’s full round robin. The leaderboard ranks each player by their own average points per round. Jev’s row combines all its matches; the other rows show performance against Jev only. Total points and wins/losses/draws use each row’s player perspective, while the model’s objective is its own total match points.
+Only matches involving Jev are scheduled. This is a matchup experiment, not a reproduction of Axelrod’s full round robin. The leaderboard ranks players by their own average points per round. Jev’s row combines its 40 matches; each other row covers five matches against Jev. Wins, draws, and losses use the row’s player perspective. The different schedules are stated beneath the table. Jev’s objective was total match points.
 
 | You / opponent | Cooperate | Defect |
 | --- | --- | --- |
