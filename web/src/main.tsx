@@ -68,7 +68,6 @@ const icons: Record<string, string> = {
   tit_for_two_tats: "↔²",
   grim: "!",
   pavlov: "⇄",
-  another_jev: "J",
 };
 const opponentTitle = (id: string) =>
   id === "another_jev" ? "another Jev" : names[id];
@@ -89,12 +88,13 @@ function Avatar({
   id?: string;
   small?: boolean;
 }) {
+  const isJev = id === "jev" || id === "another_jev";
   return (
     <span
-      className={`avatar ${id === "jev" || id === "another_jev" ? "jev" : ""} ${small ? "small" : ""}`}
+      className={`avatar ${isJev ? "jev" : ""} ${small ? "small" : ""}`}
       aria-hidden="true"
     >
-      {id === "jev" ? "J" : icons[id] || "J"}
+      {isJev ? <img src="/typesafe-logo.png" alt="" /> : icons[id] || "?"}
     </span>
   );
 }
@@ -429,15 +429,17 @@ function Leaderboard({
       losses: run.totals.losses,
       description: "Jev across all opponents.",
     },
-    ...run.standings.map((s) => ({
-      id: s.id,
-      name: s.name,
-      average: s.avg_b,
-      wins: s.losses,
-      draws: s.draws,
-      losses: s.wins,
-      description: s.description,
-    })),
+    ...run.standings
+      .filter((s) => s.id !== "another_jev")
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        average: s.avg_b,
+        wins: s.losses,
+        draws: s.draws,
+        losses: s.wins,
+        description: s.description,
+      })),
   ].sort((a, b) => (b.average ?? -1) - (a.average ?? -1));
   return (
     <div className="panel standings-panel">

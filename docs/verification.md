@@ -132,3 +132,10 @@ Validation: **14 tests passed**, including publication refusal for incomplete or
 
 
 Production deployment: [game-theory-with-jev.vercel.app](https://game-theory-with-jev.vercel.app), Vercel deployment `dpl_Gi5gQEg5G1UxWmSC4qFsy1wodVmS`. Public HTTP checks verified the homepage, run summary, all 40 replay APIs against the saved payloads, the 800-row CSV and complete JSON download, and direct match routing. The excluded test run, local environment file, and SQLite path return 404. Browser checks confirmed all nine leaderboard players, four findings, 40 archive entries, and a direct replay opening at round 20 with the correct 60:60 score and saved decision input. Desktop and mobile checks reported no page errors or document overflow.
+
+
+## Official TypeSafe avatars and leaderboard cleanup
+
+Replaced the shared Jev letter avatar with TypeSafe's official icon, preserving the original image and colors. This covers the leaderboard, archive, and both seats in self-play replays. Removed the second Jev seat from the leaderboard only; all 40 archive matches, eight opponent comparisons, self-play findings, and recorded totals remain available.
+
+The production TypeScript and Vite build passed. Desktop (1440 × 1050) and mobile (390 × 844) checks confirmed eight leaderboard rows, Jev first, loaded logo images, no document or table overflow, and no browser errors. All five self-play archive entries retain two logo avatars. A self-play replay opens at round 20 with both logos loaded. Desktop and mobile leaderboard screenshots were visually inspected.

@@ -99,4 +99,4 @@ The verifier checks the schedule, 20 rounds per match, payoff arithmetic, cumula
 
 Browser validation used `agent-browser` at desktop and mobile widths. See [verification notes](docs/verification.md).
 
-The visual treatment follows [chess.mayank.fyi/tournament](https://chess.mayank.fyi/tournament). Learn about the model at [TypeSafe](https://typesafe.ai/blog/introducing-system-one-models-and-jev).
+The visual treatment follows [chess.mayank.fyi/tournament](https://chess.mayank.fyi/tournament). Learn about the model at [TypeSafe](https://typesafe.ai/blog/introducing-system-one-models-and-jev). Jev avatars use the [official TypeSafe icon](https://framerusercontent.com/images/kcuF2BEp5XaVfkmFB634IPRKQH0.png) linked by [typesafe.ai](https://typesafe.ai).
