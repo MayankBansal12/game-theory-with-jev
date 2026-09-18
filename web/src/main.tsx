@@ -1343,9 +1343,7 @@ function Replay() {
         </div>
       </section>
       <section>
-        <SectionTitle eyebrow={`ROUND ${round}`} title="Inside the decision">
-          <div className="section-note">The exact model input and output.</div>
-        </SectionTitle>
+        <SectionTitle eyebrow={`ROUND ${round}`} title="Inside the decision" />
         <div className="panel inspector">
           {self && (
             <div className="inspector-seats segmented">
