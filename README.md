@@ -6,7 +6,7 @@ An analysis page and match archive for Jev playing the iterated prisoner’s dil
 
 ## Open the results
 
-The app is running on port **8931**. [Open the analysis](https://mayank--8931.getbb.app). See [the first run](docs/first-run.md) for the recorded findings.
+[Open the live analysis](https://game-theory-with-jev.vercel.app). The local preview also runs on port **8931**. See [the first run](docs/first-run.md) for the recorded findings.
 
 The page introduces the game and experiment, presents concise findings alongside score and cooperation charts, and explains the environment constraints and observed strategy patterns. The player leaderboard includes Jev and all opponents, ranked by each player’s average points per round, with a W/D/L record from that player’s perspective. The match archive opens at the final round and supports replay from the beginning, with each call’s exact state, criteria, probabilities, and raw response. JSON and CSV exports are available from the page. Browsing is read-only and makes no Jev calls.
 
