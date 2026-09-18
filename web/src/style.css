@@ -640,9 +640,9 @@ td:first-child {
 }
 footer {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  text-align: center;
+  text-align: right;
   border-top: 1px solid var(--line);
   padding: 25px 0 32px;
   margin-top: 50px;
@@ -650,6 +650,19 @@ footer {
   color: var(--muted);
 }
 footer a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.archive-closing {
+  max-width: 640px;
+  margin-top: 64px;
+  padding-bottom: 14px;
+  color: var(--secondary);
+  font-size: 13px;
+  line-height: 1.85;
+}
+.archive-closing a {
+  color: var(--text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -1763,6 +1776,10 @@ pre:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 16px 24px;
   margin: 0;
+}
+.setup-details > dl {
+  grid-template-columns: repeat(3, max-content);
+  justify-content: space-between;
 }
 .setup-details dt {
   color: var(--muted);

@@ -561,10 +561,6 @@ function ExperimentSetup({
             <dd>{run.config.model}</dd>
           </div>
           <div>
-            <dt>Opponents</dt>
-            <dd>{run.config.opponents.length}, including another Jev</dd>
-          </div>
-          <div>
             <dt>Matches</dt>
             <dd>{run.config.repetitions} per opponent</dd>
           </div>
@@ -573,7 +569,7 @@ function ExperimentSetup({
             <dd>{run.config.rounds} per match</dd>
           </div>
         </dl>
-        <details className="opponent-details">
+        <details className="opponent-details" open>
           <summary>
             Meet the opponents <ChevronDown size={13} />
           </summary>
@@ -714,12 +710,13 @@ function Analysis({
               target="_blank"
               rel="noreferrer"
             >
-              Jev, TypeSafe’s decision model
-            </a>
-            , into the Prisoner’s Dilemma to see if it would choose to cooperate
-            or defect. Across {run.totals.scheduled_matches} matches of the game
-            theory setup, I tested how it responds to an opponent, and how it
-            performs against other strategies.
+              Jev
+            </a>{" "}
+            (TypeSafe’s System One model) into the Prisoner’s Dilemma to see if
+            it would choose to cooperate or defect. Across{" "}
+            {run.totals.scheduled_matches} matches of a setup inspired by game
+            theory, I tested how it responds to an opponent and how it performs
+            against other strategies.
           </p>
         </div>
         <time dateTime={run.created_at}>
@@ -906,6 +903,18 @@ function Analysis({
           ))}
         </div>
       </section>
+      <p className="archive-closing">
+        This was just a fun experiment to see how a System One decision model
+        would play in a game theory setup.{" "}
+        <a
+          href="https://github.com/MayankBansal12/game-theory-with-jev"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View the repo on GitHub
+        </a>{" "}
+        and feel free to share feedback or ideas for other experiments.
+      </p>
       {method && <Methods run={run} close={() => setMethod(false)} />}
     </>
   );
