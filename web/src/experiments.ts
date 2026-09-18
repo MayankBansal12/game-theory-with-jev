@@ -1,4 +1,4 @@
-import baseline from "./recorded/experiment-0.json";
+import experiment0 from "./recorded/experiment-0.json";
 
 export interface RecordedMatch {
   id: string;
@@ -24,7 +24,6 @@ interface Finding {
 export interface Experiment {
   number: number;
   runId: string;
-  title: string;
   analysis?: AnalysisData;
   findings: {
     behavior: Finding;
@@ -43,8 +42,7 @@ export const experiments: Experiment[] = [
   {
     number: 0,
     runId: "33654f59990b",
-    title: "Baseline",
-    analysis: baseline,
+    analysis: experiment0,
     findings: {
       behavior: {
         title: "Jev settled on its move by round two",

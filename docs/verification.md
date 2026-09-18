@@ -139,3 +139,10 @@ Production deployment: [game-theory-with-jev.vercel.app](https://game-theory-wit
 Replaced the shared Jev letter avatar with TypeSafe's official icon, preserving the original image and colors. This covers the leaderboard, archive, and both seats in self-play replays. Removed the second Jev seat from the leaderboard only; all 40 archive matches, eight opponent comparisons, self-play findings, and recorded totals remain available.
 
 The production TypeScript and Vite build passed. Desktop (1440 × 1050) and mobile (390 × 844) checks confirmed eight leaderboard rows, Jev first, loaded logo images, no document or table overflow, and no browser errors. All five self-play archive entries retain two logo avatars. A self-play replay opens at round 20 with both logos loaded. Desktop and mobile leaderboard screenshots were visually inspected.
+
+
+## First-person copy and simpler page details
+
+Updated the introduction and setup to first person, removed the Baseline label, and moved the model explanation into the setup dialog. Simplified the opponent description and removed the empty-history sentence, completed-match label, leaderboard footer, and standalone confidence explainer. The footer now reads “created just for fun by mayank” with a link to https://mayank.fyi. The setup dialog's leaderboard explanation now correctly describes each player's own score and record.
+
+The production build and diff checks passed. Desktop (1440 × 1050) and mobile (390 × 844) browser checks confirmed the requested copy removals, relocated model explanation, working setup dialog, correct footer link, eight leaderboard rows, and all 40 archive entries. No document, table, or dialog overflow and no browser errors were found. Both introductory layouts were visually inspected.

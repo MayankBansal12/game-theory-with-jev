@@ -478,11 +478,6 @@ export function ExperimentFindings({ experiment }: { experiment: Experiment }) {
           </figure>
         )}
       </article>
-      <p className="confidence-explainer">
-        Choice percentages show how strongly Jev favors each move. Confidence (0
-        to 1) summarizes that distribution; it does not measure how good the
-        move is.
-      </p>
     </section>
   );
 }

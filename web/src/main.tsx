@@ -22,7 +22,6 @@ import {
   SkipBack,
   SkipForward,
   Code2,
-  ShieldCheck,
   CircleHelp,
   X,
   Copy,
@@ -164,16 +163,8 @@ function Footer() {
   return (
     <footer>
       <span>
-        Jev plays game theory <span className="footer-dot">·</span> Iterated
-        prisoner’s dilemma
+        created just for fun by <a href="https://mayank.fyi">mayank</a>
       </span>
-      <a
-        href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Meet the model <ArrowUpRight size={13} />
-      </a>
     </footer>
   );
 }
@@ -222,6 +213,12 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       </div>
       <h2>Same rules. Different opponents.</h2>
       <p>
+        Jev takes a description of a situation and returns a choice with
+        probabilities, rather than a written response. Here its only choices
+        were <strong>cooperate</strong> and <strong>defect</strong>. I recorded
+        every move to see what strategy its decisions resembled.
+      </p>
+      <p>
         Jev plays {run.config.repetitions} fresh matches against each of{" "}
         {run.config.opponents.length} opponents. Each match lasts{" "}
         {run.config.rounds} rounds. Both players choose before either sees the
@@ -241,7 +238,7 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       <h3>What Jev sees</h3>
       <p>
         The rules, round number, total rounds, scores, and every previous move.
-        No opponent name or strategy. Each match starts with an empty history.
+        No opponent name or strategy.
       </p>
       <h3>The objective</h3>
       <blockquote>{run.config.questions.next_move.instructions}</blockquote>
@@ -264,10 +261,11 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       </p>
       <h3>Reading the results</h3>
       <p>
-        Matchups are ranked by Jev’s average points per round. Each row compares
-        Jev with one opponent. Wins, draws, and losses are from Jev’s
-        perspective. Only completed matches count. These results describe this
-        model, prompt, and schedule.
+        Players are ranked by their own average points per round. Wins, draws,
+        and losses are from each player’s perspective. Jev’s row includes all
+        40 matches; the other rows cover five matches each against Jev. Only
+        completed matches count. These results describe this model, prompt,
+        and schedule.
       </p>
       <div className="method-meta">
         <span>
@@ -501,16 +499,6 @@ function Leaderboard({
           </tbody>
         </table>
       </div>
-      <div className="table-foot">
-        <ShieldCheck size={14} />
-        {run.verification?.passed
-          ? `${num(run.verification.rounds_checked)} rounds verified`
-          : "Completed matches only"}
-        <span>
-          Jev: {run.totals.completed_matches} matches · Others:{" "}
-          {run.config.repetitions} each
-        </span>
-      </div>
     </div>
   );
 }
@@ -548,22 +536,20 @@ function ExperimentSetup({
           <div className="setup-row">
             <h3>Jev’s objective</h3>
             <p>
-              We gave Jev one objective:{" "}
+              I gave Jev one objective:{" "}
               <strong>maximize its total points over the match.</strong> It
               received the rules, scores, full history, and the current round
               and total match length. It knew when the game would end, but not
-              which strategy it was facing. Every match started with an empty
-              history.
+              which strategy it was facing.
             </p>
           </div>
           <div className="setup-row">
             <h3>The opponents</h3>
             <p>
-              The opponents covered unconditional cooperation, defection, random
-              play, and strategies that respond to previous moves. We also let
-              two independent Jev players face each other. We supplied the
-              choices and objective, without telling Jev which strategy to
-              follow.
+              The opponents covered always cooperate, always defect, random
+              play, and strategies that respond to previous moves. There’s also
+              Jev versus another Jev, each following its own independent
+              strategy.
             </p>
           </div>
         </div>
@@ -716,15 +702,13 @@ function Analysis({
       <div className="hero analysis-hero">
         <div>
           <div className="eyebrow">
-            EXPERIMENT {experiment.number}{" "}
-            <span className="eyebrow-divider">/</span>{" "}
-            {experiment.title.toUpperCase()}
+            EXPERIMENT {experiment.number}
           </div>
           <h1>
             The cooperation game<span>.</span>
           </h1>
           <p className="hero-intro">
-            We put{" "}
+            So I put{" "}
             <a
               href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
               target="_blank"
@@ -732,16 +716,10 @@ function Analysis({
             >
               Jev, TypeSafe’s decision model
             </a>
-            , into a game where every move can build cooperation or break it.
-            Across {run.totals.scheduled_matches} matches of the repeated
-            Prisoner’s Dilemma, we tested when it cooperates, how it responds to
-            an opponent, and whether its choices earn points over time.
-          </p>
-          <p className="model-intro">
-            Jev takes a description of a situation and returns a choice with
-            probabilities, rather than a written response. Here its only choices
-            were <strong>cooperate</strong> and <strong>defect</strong>. We
-            recorded every move to see what strategy its decisions resembled.
+            , into the Prisoner’s Dilemma to see if it would choose to cooperate
+            or defect. Across {run.totals.scheduled_matches} matches of the game
+            theory setup, I tested how it responds to an opponent, and how it
+            performs against other strategies.
           </p>
         </div>
         <time dateTime={run.created_at}>
@@ -824,7 +802,6 @@ function Analysis({
           could earn more than matches it won.
         </p>
         <div className="results-heading">
-          <span>Across {t.completed_matches} completed matches</span>
           <div className="section-actions">
             <a
               className="text-button"

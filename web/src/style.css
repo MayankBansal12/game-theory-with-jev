@@ -649,9 +649,8 @@ footer {
   color: var(--muted);
 }
 footer a {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .loading,
 .empty {
@@ -1793,7 +1792,7 @@ pre:focus-visible {
 .results-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   margin-bottom: 14px;
   font-size: 11px;
