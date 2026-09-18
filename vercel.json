@@ -1,0 +1,65 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci --prefix web",
+  "buildCommand": "npm run build --prefix web",
+  "outputDirectory": "web/dist",
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/recorded/health.json"
+    },
+    {
+      "source": "/api/opponents",
+      "destination": "/recorded/opponents.json"
+    },
+    {
+      "source": "/api/runs",
+      "destination": "/recorded/runs.json"
+    },
+    {
+      "source": "/api/runs/:runId/export.json",
+      "destination": "/recorded/runs/:runId/export.json"
+    },
+    {
+      "source": "/api/runs/:runId/rounds.csv",
+      "destination": "/recorded/runs/:runId/rounds.csv"
+    },
+    {
+      "source": "/api/runs/:runId",
+      "destination": "/recorded/runs/:runId.json"
+    },
+    {
+      "source": "/api/matches/:matchId",
+      "destination": "/recorded/matches/:matchId.json"
+    },
+    {
+      "source": "/matches/:matchId",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/runs/:runId/export.json",
+      "headers": [
+        {
+          "key": "Content-Disposition",
+          "value": "attachment"
+        }
+      ]
+    },
+    {
+      "source": "/api/runs/:runId/rounds.csv",
+      "headers": [
+        {
+          "key": "Content-Disposition",
+          "value": "attachment"
+        },
+        {
+          "key": "Content-Type",
+          "value": "text/csv; charset=utf-8"
+        }
+      ]
+    }
+  ]
+}

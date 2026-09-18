@@ -4,6 +4,7 @@ import {
   BrowserRouter,
   Link,
   useLocation,
+  useNavigate,
   useParams,
   useSearchParams,
   Routes,
@@ -16,19 +17,14 @@ import {
   Check,
   ChevronDown,
   Download,
-  Trophy,
   Play,
   Pause,
   SkipBack,
   SkipForward,
   Code2,
-  ShieldCheck,
   CircleHelp,
   X,
   Copy,
-  Grid2X2,
-  Activity,
-  CheckCheck,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -43,12 +39,15 @@ import {
   Line,
 } from "recharts";
 import type { Run, MatchDetail, Decision } from "./types";
+import { experiments } from "./experiments";
+import type { Experiment } from "./experiments";
+import { ExperimentFindings } from "./findings";
 import "./style.css";
 
 const fmt = (n: number | null | undefined, digits = 2) =>
-  n == null ? "—" : n.toFixed(digits);
+  n == null ? "N/A" : n.toFixed(digits);
 const pct = (n: number | null | undefined) =>
-  n == null ? "—" : `${Math.round(n * 100)}%`;
+  n == null ? "N/A" : `${Math.round(n * 100)}%`;
 const num = (n: number) => n.toLocaleString();
 const names: Record<string, string> = {
   cooperator: "Always Cooperate",
@@ -68,7 +67,6 @@ const icons: Record<string, string> = {
   tit_for_two_tats: "↔²",
   grim: "!",
   pavlov: "⇄",
-  another_jev: "J",
 };
 const opponentTitle = (id: string) =>
   id === "another_jev" ? "another Jev" : names[id];
@@ -89,29 +87,18 @@ function Avatar({
   id?: string;
   small?: boolean;
 }) {
+  const isJev = id === "jev" || id === "another_jev";
   return (
     <span
-      className={`avatar ${id === "jev" || id === "another_jev" ? "jev" : ""} ${small ? "small" : ""}`}
+      className={`avatar ${isJev ? "jev" : ""} ${small ? "small" : ""}`}
       aria-hidden="true"
     >
-      {id === "jev" ? "J" : icons[id] || "J"}
+      {isJev ? <img src="/typesafe-logo.png" alt="" /> : icons[id] || "?"}
     </span>
   );
 }
 function Tag({ children }: { children: React.ReactNode }) {
   return <span className="tag">{children}</span>;
-}
-function Status({ run }: { run: Run }) {
-  return (
-    <span className={`status ${run.status === "complete" ? "complete" : ""}`}>
-      <span />
-      {run.status === "complete"
-        ? "Completed"
-        : run.status === "running"
-          ? "In progress"
-          : run.status.charAt(0).toUpperCase() + run.status.slice(1)}
-    </span>
-  );
 }
 function Legend({ opponent = "Opponent" }: { opponent?: string }) {
   return (
@@ -146,20 +133,28 @@ function SectionTitle({
     </div>
   );
 }
-function Header() {
+function Header({ experiment }: { experiment: Experiment }) {
+  const navigate = useNavigate();
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to="/" className="brand">
-          <span className="brand-icon">
-            <Grid2X2 size={19} />
-          </span>
-          Jev plays
+        <Link to={`/?run=${experiment.runId}`} className="brand">
+          Jev plays game theory
         </Link>
-        <Link className="nav-pill" to="/">
-          <Trophy size={14} /> Tournament
-        </Link>
-        <span className="header-note">An experiment in cooperation</span>
+        <div className="select-wrap experiment-select">
+          <select
+            aria-label="Experiment"
+            value={experiment.runId}
+            onChange={(e) => navigate(`/?run=${e.target.value}`)}
+          >
+            {experiments.map((item) => (
+              <option key={item.runId} value={item.runId}>
+                Experiment {item.number}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={13} />
+        </div>
       </div>
     </header>
   );
@@ -168,16 +163,8 @@ function Footer() {
   return (
     <footer>
       <span>
-        Jev plays <span className="footer-dot">·</span> Iterated prisoner’s
-        dilemma
+        created just for fun by <a href="https://mayank.fyi">mayank</a>
       </span>
-      <a
-        href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Meet the model <ArrowUpRight size={13} />
-      </a>
     </footer>
   );
 }
@@ -187,7 +174,7 @@ function ErrorView({ message }: { message: string }) {
       <CircleHelp size={25} />
       <h2>{message}</h2>
       <Link className="button" to="/">
-        Back to tournament
+        Back to analysis
       </Link>
     </div>
   );
@@ -226,6 +213,12 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       </div>
       <h2>Same rules. Different opponents.</h2>
       <p>
+        Jev takes a description of a situation and returns a choice with
+        probabilities, rather than a written response. Here its only choices
+        were <strong>cooperate</strong> and <strong>defect</strong>. I recorded
+        every move to see what strategy its decisions resembled.
+      </p>
+      <p>
         Jev plays {run.config.repetitions} fresh matches against each of{" "}
         {run.config.opponents.length} opponents. Each match lasts{" "}
         {run.config.rounds} rounds. Both players choose before either sees the
@@ -245,7 +238,7 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       <h3>What Jev sees</h3>
       <p>
         The rules, round number, total rounds, scores, and every previous move.
-        No opponent name or strategy. Each match starts with an empty history.
+        No opponent name or strategy.
       </p>
       <h3>The objective</h3>
       <blockquote>{run.config.questions.next_move.instructions}</blockquote>
@@ -268,11 +261,11 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       </p>
       <h3>Reading the results</h3>
       <p>
-        Players are ranked by their own average points per round. Jev’s row
-        covers all opponents; every other row covers only matches against Jev.
-        Wins, losses, and draws are from each player’s perspective. Only
-        completed matches count. These results describe this model, prompt, and
-        schedule.
+        Players are ranked by their own average points per round. Wins, draws,
+        and losses are from each player’s perspective. Jev’s row includes all
+        40 matches; the other rows cover five matches each against Jev. Only
+        completed matches count. These results describe this model, prompt,
+        and schedule.
       </p>
       <div className="method-meta">
         <span>
@@ -428,208 +421,269 @@ function Leaderboard({
     {
       id: "jev",
       name: "Jev",
-      description: "All opponents.",
-      points: run.totals.score_a,
       average: run.totals.avg_a,
       wins: run.totals.wins,
-      losses: run.totals.losses,
       draws: run.totals.draws,
+      losses: run.totals.losses,
+      description: "Jev across all opponents.",
     },
-    ...run.standings.map((s) => ({
-      id: s.id,
-      name: s.name,
-      description: s.description,
-      points: s.score_b,
-      average: s.avg_b,
-      wins: s.losses,
-      losses: s.wins,
-      draws: s.draws,
-    })),
+    ...run.standings
+      .filter((s) => s.id !== "another_jev")
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        average: s.avg_b,
+        wins: s.losses,
+        draws: s.draws,
+        losses: s.wins,
+        description: s.description,
+      })),
   ].sort((a, b) => (b.average ?? -1) - (a.average ?? -1));
-
   return (
     <div className="panel standings-panel">
       <div className="panel-head">
         <div>
-          <h3>Jev vs other players</h3>
-          <p>
-            Ranked by each player’s points per round. Opponents play only Jev.
-          </p>
+          <h3>Leaderboard</h3>
+          <p>Ranked by each player’s average points per round.</p>
         </div>
-        <Trophy size={17} className="muted" />
       </div>
       <div className="table-scroll">
-        <table aria-label="Jev vs other players">
+        <table className="player-table" aria-label="Player leaderboard">
           <thead>
             <tr>
-              <th scope="col" className="rank-col">
-                #
-              </th>
               <th scope="col">Player</th>
-              <th scope="col" className="number">
-                Total pts
-              </th>
-              <th scope="col" title="Player wins, losses, draws">
-                W / L / D
+              <th scope="col" className="number" aria-sort="descending">
+                Avg pts / round
               </th>
               <th
                 scope="col"
-                className="number"
-                aria-sort="descending"
-                title="Average points per round"
+                className="record"
+                title="Player wins, draws, losses"
               >
-                Pts / rd
+                W / D / L
               </th>
             </tr>
           </thead>
           <tbody>
-            {players.map((player) => {
-              const rank =
-                player.average == null
-                  ? null
-                  : players.findIndex((p) => p.average === player.average) + 1;
-              return (
-                <tr
-                  key={player.id}
-                  className={player.id === "jev" ? "jev-row" : undefined}
-                >
-                  <td>
-                    <span className={`rank ${rank === 1 ? "first" : ""}`}>
-                      {rank ?? "—"}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="opponent-link"
-                      onClick={() =>
-                        onSelect(player.id === "jev" ? "all" : player.id)
-                      }
-                      title={`${player.description} View matches.`}
-                    >
-                      <Avatar id={player.id} small />
-                      <span>{player.name}</span>
-                    </button>
-                  </td>
-                  <td className="number">{num(player.points)}</td>
-                  <td className="record">
-                    <span>{player.wins}</span>
-                    <i>/</i>
-                    <span>{player.losses}</span>
-                    <i>/</i>
-                    <span>{player.draws}</span>
-                  </td>
-                  <td className="number">
-                    <strong className={rank === 1 ? "green" : ""}>
-                      {fmt(player.average)}
-                    </strong>
-                  </td>
-                </tr>
-              );
-            })}
+            {players.map((player) => (
+              <tr
+                key={player.id}
+                className={player.id === "jev" ? "jev-row" : undefined}
+              >
+                <td>
+                  <button
+                    className="opponent-link"
+                    onClick={() =>
+                      onSelect(player.id === "jev" ? "all" : player.id)
+                    }
+                    title={`${player.description} View matches.`}
+                  >
+                    <Avatar id={player.id} small />
+                    <span>{player.name}</span>
+                  </button>
+                </td>
+                <td className="number">
+                  <strong className={player.id === "jev" ? "green" : ""}>
+                    {fmt(player.average)}
+                  </strong>
+                </td>
+                <td className="record">
+                  <span>{player.wins}</span>
+                  <i>/</i>
+                  <span>{player.draws}</span>
+                  <i>/</i>
+                  <span>{player.losses}</span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      <div className="table-foot">
-        <ShieldCheck size={14} />
-        {run.verification?.passed
-          ? `${num(run.verification.rounds_checked)} rounds verified`
-          : "Completed matches only"}
-        <span>
-          Jev: {run.totals.completed_matches} matches · Others:{" "}
-          {run.config.repetitions} each
-        </span>
-      </div>
     </div>
   );
 }
-function SummaryInsight({ run }: { run: Run }) {
-  const best = run.standings.find((s) => s.played > 0),
-    worst = [...run.standings].reverse().find((s) => s.played > 0);
-  if (!best || !worst) return null;
-  const self = run.standings.find(
-    (s) => s.id === "another_jev" && s.played > 0,
-  );
+function ExperimentSetup({
+  run,
+  showMethods,
+}: {
+  run: Run;
+  showMethods: () => void;
+}) {
   return (
-    <div className="insights">
-      <div>
-        <span className="insight-icon">
-          <ArrowUpRight size={17} />
-        </span>
-        <div>
-          <span className="eyebrow">HIGHEST SCORE</span>
-          <p>
-            Against <strong>{best.name}</strong>
-            <br />
-            <span>{fmt(best.avg_a)} points per round</span>
-          </p>
-        </div>
-      </div>
-      <div>
-        <span className="insight-icon">
-          <Activity size={17} />
-        </span>
-        <div>
-          <span className="eyebrow">LOWEST SCORE</span>
-          <p>
-            Against <strong>{worst.name}</strong>
-            <br />
-            <span>{fmt(worst.avg_a)} points per round</span>
-          </p>
-        </div>
-      </div>
-      {self && (
-        <div>
-          <span className="insight-icon">
-            <CheckCheck size={17} />
-          </span>
-          <div>
-            <span className="eyebrow">JEV VS ANOTHER JEV</span>
+    <section className="experiment-setup" aria-labelledby="setup-title">
+      <div className="setup-copy">
+        <h2 id="setup-title">How the experiment works</h2>
+        <div className="setup-rows">
+          <div className="setup-row">
+            <h3>The game</h3>
             <p>
-              <strong>{pct(self.mutual_cooperation)}</strong> mutual cooperation
-              <br />
-              <span>Across {self.played * run.config.rounds} rounds</span>
+              The iterated Prisoner’s Dilemma is a game about trust over
+              repeated encounters. Each round, both players choose to cooperate
+              or defect without seeing the other’s choice. Mutual cooperation
+              earns 3 points each. A lone defector takes 5 while the cooperator
+              gets 0. If both defect, they earn just 1 each.
+            </p>
+            <a
+              className="research-link"
+              href="https://doi.org/10.1126/science.7466396"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Inspired by Axelrod &amp; Hamilton’s research on cooperation{" "}
+              <ArrowUpRight size={13} />
+            </a>
+          </div>
+          <div className="setup-row">
+            <h3>Jev’s objective</h3>
+            <p>
+              I gave Jev one objective:{" "}
+              <strong>maximize its total points over the match.</strong> It
+              received the rules, scores, full history, and the current round
+              and total match length. It knew when the game would end, but not
+              which strategy it was facing.
+            </p>
+          </div>
+          <div className="setup-row">
+            <h3>The opponents</h3>
+            <p>
+              The opponents covered always cooperate, always defect, random
+              play, and strategies that respond to previous moves. There’s also
+              Jev versus another Jev, each following its own independent
+              strategy.
             </p>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+      <aside className="setup-details" aria-label="Experiment details">
+        <dl>
+          <div>
+            <dt>Model</dt>
+            <dd>{run.config.model}</dd>
+          </div>
+          <div>
+            <dt>Matches</dt>
+            <dd>{run.config.repetitions} per opponent</dd>
+          </div>
+          <div>
+            <dt>Rounds</dt>
+            <dd>{run.config.rounds} per match</dd>
+          </div>
+        </dl>
+        <details className="opponent-details" open>
+          <summary>
+            Meet the opponents <ChevronDown size={13} />
+          </summary>
+          <dl>
+            {run.config.opponents.map((id) => {
+              const opponent = run.standings.find((s) => s.id === id);
+              return (
+                opponent && (
+                  <div key={id}>
+                    <dt>{opponent.name}</dt>
+                    <dd>{opponent.description}</dd>
+                  </div>
+                )
+              );
+            })}
+          </dl>
+        </details>
+        <button className="text-button" onClick={showMethods}>
+          Exact instructions &amp; full setup <ArrowUpRight size={13} />
+        </button>
+      </aside>
+    </section>
   );
 }
-function Tournament() {
-  const [runs, setRuns] = useState<Run[]>([]),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true),
-    [params, setParams] = useSearchParams(),
-    [filter, setFilter] = useState("all"),
+function ExperimentConstraints({ experiment }: { experiment: Experiment }) {
+  const matches = experiment.analysis?.matches ?? [];
+  const alwaysDefect = matches.filter((m) =>
+    [...m.moves].every((a) => a === "D"),
+  );
+  // Compare complete recorded paths, not just whether a match started with C.
+  // Matching these histories does not identify a unique underlying strategy.
+  const grimLike = matches.filter((m) =>
+    [...m.moves].every(
+      (action, i) =>
+        action === (m.opponentMoves.slice(0, i).includes("D") ? "D" : "C"),
+    ),
+  );
+  const untestedCooperation = grimLike.filter(
+    (m) => !m.opponentMoves.includes("D"),
+  ).length;
+  const switched = grimLike.filter((m) => m.moves.includes("D")).length;
+  return (
+    <section
+      className="experiment-constraints"
+      aria-labelledby="constraints-title"
+    >
+      <h2 id="constraints-title">Environment constraints</h2>
+      <div className="constraint-rows">
+        {experiment.constraints.map((constraint) => (
+          <article className="constraint-row" key={constraint.title}>
+            <h3>{constraint.title}</h3>
+            <p>{constraint.text}</p>
+          </article>
+        ))}
+        {matches.length > 0 && (
+          <article className="constraint-row strategy-observation">
+            <h3>What Jev showed</h3>
+            <div>
+              <p>
+                Jev matched Always Defect in{" "}
+                <strong>
+                  {((alwaysDefect.length / matches.length) * 100).toFixed(1)}%
+                </strong>{" "}
+                of matches ({alwaysDefect.length}/{matches.length}). Its moves
+                were consistent with Grim Trigger in{" "}
+                <strong>
+                  {((grimLike.length / matches.length) * 100).toFixed(1)}%
+                </strong>{" "}
+                ({grimLike.length}/{matches.length}): {untestedCooperation}{" "}
+                stayed cooperative without facing a defection, and {switched}{" "}
+                switched permanently after the opponent defected.
+              </p>
+              <p className="strategy-note">
+                These patterns can fit more than one strategy. This run did not
+                test whether Jev would return to cooperation after an opponent
+                did.
+              </p>
+            </div>
+          </article>
+        )}
+      </div>
+    </section>
+  );
+}
+function Analysis({
+  run,
+  experiment,
+  error,
+  loading,
+}: {
+  run: Run | undefined;
+  experiment: Experiment;
+  error: string;
+  loading: boolean;
+}) {
+  const [filter, setFilter] = useState("all"),
     [method, setMethod] = useState(false);
   const gamesRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    api<Run[]>("/api/runs")
-      .then(setRuns)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-  const run = runs.find((r) => r.id === params.get("run")) || runs[0];
-  useEffect(() => {
-    if (!run || !["running", "queued"].includes(run.status)) return;
-    const source = new EventSource(`/api/runs/${run.id}/events`);
-    source.onmessage = (e) => {
-      const next: Run = JSON.parse(e.data);
-      setRuns((old) => old.map((r) => (r.id === next.id ? next : r)));
-      if (!["running", "queued"].includes(next.status)) source.close();
-    };
-    return () => source.close();
-  }, [run?.id, run?.status]);
-  useEffect(() => {
-    document.title = "Jev tournament";
-  }, []);
+    document.title = `Experiment ${experiment.number} | Jev plays game theory`;
+  }, [experiment.number]);
   if (error) return <ErrorView message={error} />;
   if (!run)
-    return loading ? <Loading /> : <ErrorView message="No tournaments yet." />;
+    return loading ? <Loading /> : <ErrorView message="No experiments yet." />;
   const t = run.totals,
     matches = run.matches.filter(
       (m) => filter === "all" || m.opponent === filter,
     );
+  const completed = run.matches.filter((m) => m.status === "complete");
+  const completedRounds = completed.reduce((n, m) => n + m.rounds_played, 0);
+  const defections = completed.reduce(
+    (n, m) => n + m.rounds_played - m.cooperations_a,
+    0,
+  );
   const selectOpponent = (id: string) => {
     setFilter(id);
     gamesRef.current?.scrollIntoView({
@@ -641,117 +695,141 @@ function Tournament() {
   };
   return (
     <>
-      <div className="hero">
+      <div className="hero analysis-hero">
         <div>
           <div className="eyebrow">
-            <Trophy size={14} /> FIRST ENCOUNTERS
+            EXPERIMENT {experiment.number}
           </div>
           <h1>
             The cooperation game<span>.</span>
           </h1>
-          <p>
-            One model. {run.config.opponents.length} opponents. A choice every
-            round.
+          <p className="hero-intro">
+            So I put{" "}
+            <a
+              href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Jev
+            </a>{" "}
+            (TypeSafe’s System One model) into the Prisoner’s Dilemma to see if
+            it would choose to cooperate or defect. Across{" "}
+            {run.totals.scheduled_matches} matches of a setup inspired by game
+            theory, I tested how it responds to an opponent and how it performs
+            against other strategies.
           </p>
-          <div className="hero-tags">
-            <Tag>{run.config.model}</Tag>
+        </div>
+        <time dateTime={run.created_at}>
+          {new Date(run.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </time>
+      </div>
+      <ExperimentSetup run={run} showMethods={() => setMethod(true)} />
+      <section className="findings-section" aria-labelledby="findings-title">
+        <div className="section-title">
+          <h2 id="findings-title">The results</h2>
+        </div>
+        <div className="stats">
+          <div>
+            <span>Jev’s average score</span>
+            <strong>
+              {fmt(t.avg_a)}
+              <small>/ 5</small>
+            </strong>
+            <span>points per round</span>
+          </div>
+          <div>
+            <span>Jev cooperated</span>
+            <strong>
+              {t.cooperation_a == null
+                ? "N/A"
+                : `${(t.cooperation_a * 100).toFixed(1)}%`}
+            </strong>
+            <span>of completed rounds</span>
+          </div>
+          <div>
             <span>
-              {run.config.rounds} rounds × {run.config.repetitions} matches per
-              opponent
+              Match record <small>W / D / L</small>
             </span>
-            <button className="text-button" onClick={() => setMethod(true)}>
-              How it works <ArrowUpRight size={13} />
-            </button>
+            <strong className="stat-record">
+              {t.wins}
+              <i>/</i>
+              {t.draws}
+              <i>/</i>
+              {t.losses}
+            </strong>
+            <span>by total points</span>
+          </div>
+          <div>
+            <span>Matches played</span>
+            <strong>
+              {t.completed_matches}
+              <small>/ {t.scheduled_matches}</small>
+            </strong>
+            <span>
+              {num(t.rounds_played)} rounds · {num(t.decisions)} Jev decisions
+            </span>
           </div>
         </div>
-        <div className="hero-right">
-          <Status run={run} />
-          <span>
-            {new Date(run.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-      </div>
-      <div className="stats">
-        <div>
-          <span>Jev’s average score</span>
+        {run.status !== "complete" && (
+          <div className="progress-panel">
+            <span>
+              {run.status === "running"
+                ? "Playing matches…"
+                : `Run ${run.status}.`}
+            </span>
+            <progress max={t.scheduled_rounds} value={t.rounds_played} />
+            <span>
+              {t.rounds_played} / {t.scheduled_rounds} rounds
+            </span>
+          </div>
+        )}
+        <p className="results-summary">
+          Jev earned <strong>{num(t.score_a)} points</strong> in total. It
+          defected in{" "}
           <strong>
-            {fmt(t.avg_a)}
-            <small>/ 5</small>
+            {num(defections)} of {num(completedRounds)} moves
           </strong>
-          <span>points per round</span>
-        </div>
-        <div>
-          <span>Jev cooperated</span>
-          <strong>
-            {t.cooperation_a == null
-              ? "—"
-              : `${(t.cooperation_a * 100).toFixed(1)}%`}
-          </strong>
-          <span>of completed rounds</span>
-        </div>
-        <div>
-          <span>
-            Match record <small>W / D / L</small>
-          </span>
-          <strong className="stat-record">
-            {t.wins}
-            <i>/</i>
-            {t.draws}
-            <i>/</i>
-            {t.losses}
-          </strong>
-          <span>by total points</span>
-        </div>
-        <div>
-          <span>Matches played</span>
-          <strong>
-            {t.completed_matches}
-            <small>/ {t.scheduled_matches}</small>
-          </strong>
-          <span>
-            {num(t.rounds_played)} rounds · {num(t.decisions)} Jev decisions
-          </span>
-        </div>
-      </div>
-      {run.status !== "complete" && (
-        <div className="progress-panel">
-          <span>
-            {run.status === "running"
-              ? "Playing matches…"
-              : `Run ${run.status}.`}
-          </span>
-          <progress max={t.scheduled_rounds} value={t.rounds_played} />
-          <span>
-            {t.rounds_played} / {t.scheduled_rounds} rounds
-          </span>
-        </div>
-      )}
-      <section>
-        <SectionTitle
-          eyebrow="THE RESULTS"
-          title="A different game with everyone"
-        >
+          {completedRounds > 0 &&
+            ` (${((defections / completedRounds) * 100).toFixed(1)}%)`}
+          . Its score depended strongly on the opponent: cooperative matches
+          could earn more than matches it won.
+        </p>
+        <div className="results-heading">
           <div className="section-actions">
-            <a className="text-button" href={`/api/runs/${run.id}/rounds.csv`}>
+            <a
+              className="text-button"
+              aria-label="Download rounds CSV"
+              href={`/api/runs/${run.id}/rounds.csv`}
+            >
               <Download size={14} /> CSV
             </a>
-            <a className="text-button" href={`/api/runs/${run.id}/export.json`}>
+            <a
+              className="text-button"
+              aria-label="Download full experiment data"
+              href={`/api/runs/${run.id}/export.json`}
+            >
               <Code2 size={14} /> Full data
             </a>
           </div>
-        </SectionTitle>
+        </div>
         <div className="results-grid">
           <Leaderboard run={run} onSelect={selectOpponent} />
           <ScoreChart run={run} />
         </div>
-        <SummaryInsight run={run} />
+        <p className="results-caption">
+          Jev’s row combines all {run.totals.completed_matches} matches. Every
+          other player is scored only against Jev, so the rows cover different
+          opponents.
+        </p>
       </section>
+      <ExperimentFindings experiment={experiment} />
+      <ExperimentConstraints experiment={experiment} />
       <section ref={gamesRef} className="archive">
-        <SectionTitle eyebrow="ROUND BY ROUND" title="Match archive">
+        <SectionTitle title="Match archive">
           <div className="select-wrap">
             <select
               aria-label="Filter matches by opponent"
@@ -773,27 +851,14 @@ function Tournament() {
             {matches.length} matches <span className="footer-dot">·</span>{" "}
             Select a game to replay
           </span>
-          <div className="select-wrap quiet">
-            <select
-              aria-label="Tournament run"
-              value={run.id}
-              onChange={(e) => {
-                setParams({ run: e.target.value });
-                setFilter("all");
-              }}
-            >
-              {runs.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={12} />
-          </div>
         </div>
         <div className="match-grid">
           {matches.map((m) => (
-            <Link className="match-card" to={`/matches/${m.id}`} key={m.id}>
+            <Link
+              className="match-card"
+              to={`/matches/${m.id}?run=${run.id}`}
+              key={m.id}
+            >
               <div className="match-card-top">
                 <span>
                   GAME {String(m.number).padStart(2, "0")} <i>·</i> MATCH{" "}
@@ -838,6 +903,18 @@ function Tournament() {
           ))}
         </div>
       </section>
+      <p className="archive-closing">
+        This was just a fun experiment to see how a System One decision model
+        would play in a game theory setup.{" "}
+        <a
+          href="https://github.com/MayankBansal12/game-theory-with-jev"
+          target="_blank"
+          rel="noreferrer"
+        >
+          View the repo on GitHub
+        </a>{" "}
+        and feel free to share feedback or ideas for other experiments.
+      </p>
       {method && <Methods run={run} close={() => setMethod(false)} />}
     </>
   );
@@ -959,7 +1036,10 @@ function Replay() {
     setSeat("a");
     api<MatchDetail>(`/api/matches/${id}`)
       .then((value) => {
-        if (active) setMatch(value);
+        if (active) {
+          setRound(Math.max(1, value.rounds.length));
+          setMatch(value);
+        }
       })
       .catch((e) => {
         if (active) setError(e.message);
@@ -970,7 +1050,7 @@ function Replay() {
   }, [id]);
   useEffect(() => {
     if (match)
-      document.title = `Jev vs ${opponentTitle(match.opponent)} · Jev plays`;
+      document.title = `Jev vs ${opponentTitle(match.opponent)} | Jev plays game theory`;
   }, [match?.id]);
   useEffect(() => {
     if (!playing || !match) return;
@@ -1029,7 +1109,7 @@ function Replay() {
   return (
     <>
       <Link className="back-link" to={`/?run=${match.run_id}`}>
-        <ArrowLeft size={14} /> Tournament
+        <ArrowLeft size={14} /> Back to analysis
       </Link>
       <div className="replay-hero">
         <div className="eyebrow">
@@ -1149,7 +1229,7 @@ function Replay() {
         <div className="panel score-progress">
           <div className="panel-head">
             <div>
-              <h3>The score so far</h3>
+              <h3>Points over the match</h3>
               <p>Cumulative points after each round.</p>
             </div>
           </div>
@@ -1219,7 +1299,7 @@ function Replay() {
           <div className="chart-note">
             Final score{" "}
             <strong>
-              Jev {final.score_a} <span>—</span> {final.score_b}{" "}
+              Jev {final.score_a} <span>:</span> {final.score_b}{" "}
               {names[match.opponent]}
             </strong>
           </div>
@@ -1272,9 +1352,7 @@ function Replay() {
         </div>
       </section>
       <section>
-        <SectionTitle eyebrow={`ROUND ${round}`} title="Inside the decision">
-          <div className="section-note">The exact model input and output.</div>
-        </SectionTitle>
+        <SectionTitle eyebrow={`ROUND ${round}`} title="Inside the decision" />
         <div className="panel inspector">
           {self && (
             <div className="inspector-seats segmented">
@@ -1308,14 +1386,64 @@ function ScrollToTop() {
   }, [pathname]);
   return null;
 }
-function App() {
+function ExperimentApp() {
+  const [runs, setRuns] = useState<Run[]>([]),
+    [error, setError] = useState(""),
+    [loading, setLoading] = useState(true);
+  const [params] = useSearchParams();
+  const { pathname } = useLocation();
+  useEffect(() => {
+    let active = true;
+    Promise.all(experiments.map((item) => api<Run>(`/api/runs/${item.runId}`)))
+      .then((data) => {
+        if (active) setRuns(data);
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const matchRun = runs.find((r) =>
+    r.matches.some((m) => pathname === `/matches/${m.id}`),
+  );
+  const experiment =
+    experiments.find(
+      (item) => item.runId === (matchRun?.id ?? params.get("run")),
+    ) ?? experiments[0];
+  const run = runs.find((r) => r.id === experiment.runId);
+  useEffect(() => {
+    if (!run || !["running", "queued"].includes(run.status)) return;
+    const source = new EventSource(`/api/runs/${run.id}/events`);
+    source.onmessage = (e) => {
+      const next: Run = JSON.parse(e.data);
+      setRuns((old) => old.map((r) => (r.id === next.id ? next : r)));
+      if (!["running", "queued"].includes(next.status)) source.close();
+    };
+    return () => source.close();
+  }, [run?.id, run?.status]);
   return (
-    <BrowserRouter>
+    <>
       <ScrollToTop />
-      <Header />
+      <Header experiment={experiment} />
       <main>
         <Routes>
-          <Route path="/" element={<Tournament />} />
+          <Route
+            path="/"
+            element={
+              <Analysis
+                key={experiment.runId}
+                run={run}
+                experiment={experiment}
+                error={error}
+                loading={loading}
+              />
+            }
+          />
           <Route path="/matches/:id" element={<Replay />} />
           <Route
             path="*"
@@ -1324,6 +1452,13 @@ function App() {
         </Routes>
         <Footer />
       </main>
+    </>
+  );
+}
+function App() {
+  return (
+    <BrowserRouter>
+      <ExperimentApp />
     </BrowserRouter>
   );
 }
