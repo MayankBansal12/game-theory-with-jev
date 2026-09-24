@@ -32,6 +32,13 @@ def verify(store, run_id):
             seats = (0, 1) if match["opponent"] == "another_jev" else (0,)
             for seat in seats:
                 decision = store.decision(match["id"], index, seat)
+                initial_move = config.get("initial_move", "free")
+                if index == 1 and seat == 0 and initial_move != "free":
+                    if row["a"] != ACTIONS[initial_move]:
+                        errors.append(f'{match["id"]}/{index}/{seat}: forced opening mismatch')
+                    if decision:
+                        errors.append(f'{match["id"]}/{index}/{seat}: unexpected decision for forced opening')
+                    continue
                 if not decision:
                     errors.append(f'{match["id"]}/{index}/{seat}: missing decision')
                     continue

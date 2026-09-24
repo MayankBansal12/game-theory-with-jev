@@ -45,6 +45,7 @@ export interface Standing extends Opponent {
 export interface Config {
   rounds: number;
   repetitions: number;
+  initial_move?: "free" | "cooperate" | "defect";
   opponents: string[];
   seed: number;
   model: string;
@@ -116,6 +117,7 @@ export interface Round {
   score_a: number;
   score_b: number;
   decisions: { a: Decision | null; b: Decision | null };
+  action_sources?: { a: "forced" | "model"; b: "model" | "scripted" };
 }
 export interface MatchDetail extends Match {
   config: Config;

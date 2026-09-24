@@ -1,0 +1,599 @@
+{
+  "config": {
+    "rounds": 20,
+    "repetitions": 20,
+    "opponents": [
+      "cooperator",
+      "defector",
+      "random",
+      "tit_for_tat",
+      "tit_for_two_tats",
+      "grim",
+      "pavlov",
+      "another_jev",
+      "delayed_betrayal",
+      "bully",
+      "anti_tit_for_tat",
+      "adaptive"
+    ],
+    "seed": 42,
+    "model": "jev-1.13.0",
+    "prompt_version": "1.0",
+    "questions": {
+      "next_move": {
+        "type": "choice",
+        "instructions": "Choose your action for the current round to maximize your expected total points over this entire match. Your opponent chooses simultaneously, so their current action is unknown. Use the supplied rules and previous rounds to inform your decision.",
+        "criteria": {
+          "cooperate": "Play cooperate under the supplied payoff rules.",
+          "defect": "Play defect under the supplied payoff rules."
+        }
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "runId": "bc6f79c6d8f0",
+      "opening": "free",
+      "label": "Free opening",
+      "allRounds": {
+        "matches": 240,
+        "rounds": 4800,
+        "pointsPerRound": 2.8252083333333333,
+        "cooperation": 0.14916666666666667,
+        "mutualCooperation": 0.140625
+      },
+      "afterOpening": {
+        "matches": 240,
+        "rounds": 4560,
+        "pointsPerRound": 2.793421052631579,
+        "cooperation": 0.14210526315789473,
+        "mutualCooperation": 0.13728070175438598
+      },
+      "returnsToCooperation": 4,
+      "cooperationByRound": [
+        0.2833333333333333,
+        0.20416666666666666,
+        0.17083333333333334,
+        0.17083333333333334,
+        0.17083333333333334,
+        0.17083333333333334,
+        0.13333333333333333,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668,
+        0.12916666666666668
+      ],
+      "delayedBetrayal": [
+        {
+          "moves": "DDDDDDDDDDDDDDDDDDDD",
+          "count": 11,
+          "matchId": "6a78c9f7af34"
+        },
+        {
+          "moves": "CCCCCCDCCCCCCCCCCCCC",
+          "count": 4,
+          "matchId": "1406858da4ed"
+        },
+        {
+          "moves": "CCCCCCDDDDDDDDDDDDDD",
+          "count": 5,
+          "matchId": "c7c3072f3984"
+        }
+      ],
+      "opponents": [
+        {
+          "id": "cooperator",
+          "name": "Always Cooperate",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.5,
+            "cooperation": 0.25,
+            "mutualCooperation": 0.25
+          }
+        },
+        {
+          "id": "defector",
+          "name": "Always Defect",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "random",
+          "name": "Random",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.8342105263157893,
+            "cooperation": 0.007894736842105263,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "tit_for_tat",
+          "name": "Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.6,
+            "cooperation": 0.3,
+            "mutualCooperation": 0.3
+          }
+        },
+        {
+          "id": "tit_for_two_tats",
+          "name": "Tit for Two Tats",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.6578947368421053,
+            "cooperation": 0.25,
+            "mutualCooperation": 0.25
+          }
+        },
+        {
+          "id": "grim",
+          "name": "Grim Trigger",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.4,
+            "cooperation": 0.2,
+            "mutualCooperation": 0.2
+          }
+        },
+        {
+          "id": "pavlov",
+          "name": "Win\u2013Stay, Lose\u2013Shift",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.9263157894736844,
+            "cooperation": 0.3,
+            "mutualCooperation": 0.3
+          }
+        },
+        {
+          "id": "another_jev",
+          "name": "Another Jev",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.1,
+            "cooperation": 0.05,
+            "mutualCooperation": 0.05
+          }
+        },
+        {
+          "id": "delayed_betrayal",
+          "name": "Delayed Betrayal",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.302631578947368,
+            "cooperation": 0.25526315789473686,
+            "mutualCooperation": 0.23157894736842105
+          }
+        },
+        {
+          "id": "bully",
+          "name": "Bully",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.936842105263158,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "anti_tit_for_tat",
+          "name": "Anti\u2013Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.881578947368421,
+            "cooperation": 0.013157894736842105,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "adaptive",
+          "name": "Adaptive",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.3815789473684212,
+            "cooperation": 0.07894736842105263,
+            "mutualCooperation": 0.06578947368421052
+          }
+        }
+      ]
+    },
+    {
+      "runId": "1a47c3b89898",
+      "opening": "cooperate",
+      "label": "Cooperate first",
+      "allRounds": {
+        "matches": 240,
+        "rounds": 4800,
+        "pointsPerRound": 3.0283333333333333,
+        "cooperation": 0.543125,
+        "mutualCooperation": 0.5152083333333334
+      },
+      "afterOpening": {
+        "matches": 240,
+        "rounds": 4560,
+        "pointsPerRound": 3.072587719298246,
+        "cooperation": 0.5190789473684211,
+        "mutualCooperation": 0.5039473684210526
+      },
+      "returnsToCooperation": 8,
+      "cooperationByRound": [
+        1.0,
+        0.7291666666666666,
+        0.6083333333333333,
+        0.6083333333333333,
+        0.6083333333333333,
+        0.6083333333333333,
+        0.525,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
+        0.475
+      ],
+      "delayedBetrayal": [
+        {
+          "moves": "CCCCCCDDDDDDDDDDDDDD",
+          "count": 12,
+          "matchId": "232da928ea4f"
+        },
+        {
+          "moves": "CCCCCCDCCCCCCCCCCCCC",
+          "count": 8,
+          "matchId": "95ea1b05e42d"
+        }
+      ],
+      "opponents": [
+        {
+          "id": "cooperator",
+          "name": "Always Cooperate",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.0,
+            "cooperation": 1.0,
+            "mutualCooperation": 1.0
+          }
+        },
+        {
+          "id": "defector",
+          "name": "Always Defect",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "random",
+          "name": "Random",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.818421052631579,
+            "cooperation": 0.02368421052631579,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "tit_for_tat",
+          "name": "Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.0,
+            "cooperation": 1.0,
+            "mutualCooperation": 1.0
+          }
+        },
+        {
+          "id": "tit_for_two_tats",
+          "name": "Tit for Two Tats",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.0,
+            "cooperation": 1.0,
+            "mutualCooperation": 1.0
+          }
+        },
+        {
+          "id": "grim",
+          "name": "Grim Trigger",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.0,
+            "cooperation": 1.0,
+            "mutualCooperation": 1.0
+          }
+        },
+        {
+          "id": "pavlov",
+          "name": "Win\u2013Stay, Lose\u2013Shift",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.0,
+            "cooperation": 1.0,
+            "mutualCooperation": 1.0
+          }
+        },
+        {
+          "id": "another_jev",
+          "name": "Another Jev",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.6,
+            "cooperation": 0.3,
+            "mutualCooperation": 0.3
+          }
+        },
+        {
+          "id": "delayed_betrayal",
+          "name": "Delayed Betrayal",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.768421052631579,
+            "cooperation": 0.5368421052631579,
+            "mutualCooperation": 0.4842105263157895
+          }
+        },
+        {
+          "id": "bully",
+          "name": "Bully",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.7894736842105265,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "anti_tit_for_tat",
+          "name": "Anti\u2013Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.526315789473684,
+            "cooperation": 0.05263157894736842,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "adaptive",
+          "name": "Adaptive",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 3.3684210526315788,
+            "cooperation": 0.3157894736842105,
+            "mutualCooperation": 0.2631578947368421
+          }
+        }
+      ]
+    },
+    {
+      "runId": "2fbbe57b0d35",
+      "opening": "defect",
+      "label": "Defect first",
+      "allRounds": {
+        "matches": 240,
+        "rounds": 4800,
+        "pointsPerRound": 2.7908333333333335,
+        "cooperation": 0.0,
+        "mutualCooperation": 0.0
+      },
+      "afterOpening": {
+        "matches": 240,
+        "rounds": 4560,
+        "pointsPerRound": 2.732456140350877,
+        "cooperation": 0.0,
+        "mutualCooperation": 0.0
+      },
+      "returnsToCooperation": 0,
+      "cooperationByRound": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "delayedBetrayal": [
+        {
+          "moves": "DDDDDDDDDDDDDDDDDDDD",
+          "count": 20,
+          "matchId": "54dbfa9faa11"
+        }
+      ],
+      "opponents": [
+        {
+          "id": "cooperator",
+          "name": "Always Cooperate",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 5.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "defector",
+          "name": "Always Defect",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "random",
+          "name": "Random",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.8421052631578947,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "tit_for_tat",
+          "name": "Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "tit_for_two_tats",
+          "name": "Tit for Two Tats",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.2105263157894737,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "grim",
+          "name": "Grim Trigger",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "pavlov",
+          "name": "Win\u2013Stay, Lose\u2013Shift",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.8947368421052633,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "another_jev",
+          "name": "Another Jev",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 1.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "delayed_betrayal",
+          "name": "Delayed Betrayal",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 4.7894736842105265,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "bully",
+          "name": "Bully",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 5.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "anti_tit_for_tat",
+          "name": "Anti\u2013Tit for Tat",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 5.0,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        },
+        {
+          "id": "adaptive",
+          "name": "Adaptive",
+          "afterOpening": {
+            "matches": 20,
+            "rounds": 380,
+            "pointsPerRound": 2.0526315789473686,
+            "cooperation": 0.0,
+            "mutualCooperation": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

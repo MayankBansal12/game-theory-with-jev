@@ -80,11 +80,16 @@ def export_csv(run_id: str):
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["match", "opponent", "repetition", "round", "jev_action", "opponent_action",
-                     "jev_points", "opponent_points", "jev_total", "opponent_total"])
+                     "jev_points", "opponent_points", "jev_total", "opponent_total",
+                     "initial_move", "jev_action_source", "opponent_action_source"])
+    config = store.get_run(run_id)["config"]
+    initial_move = config.get("initial_move", "free")
     for match in store.matches(run_id):
         for row in store.history(match["id"]):
             writer.writerow([match["number"], match["opponent"], match["repetition"], row["number"],
-                             row["a"], row["b"], row["reward_a"], row["reward_b"], row["score_a"], row["score_b"]])
+                             row["a"], row["b"], row["reward_a"], row["reward_b"], row["score_a"], row["score_b"], initial_move,
+                             "forced" if row["number"] == 1 and initial_move != "free" else "model",
+                             "model" if match["opponent"] == "another_jev" else "scripted"])
     return Response(output.getvalue(), media_type="text/csv",
                     headers={"Content-Disposition": f'attachment; filename="jev-{run_id}-rounds.csv"'})
 

@@ -34,6 +34,10 @@ class Runner:
 
     async def decide(self, match, history, seat):
         number = len(history) + 1
+        initial_move = self.config.get("initial_move", "free")
+        if number == 1 and seat == 0 and initial_move != "free":
+            # This is an experimental intervention, not a model response.
+            return ACTIONS[initial_move]
         payload = {"model": self.config["model"],
                    "state": observation(history, self.config["rounds"], seat),
                    "questions": self.config["questions"]}

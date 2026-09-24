@@ -146,3 +146,9 @@ The production TypeScript and Vite build passed. Desktop (1440 × 1050) and mobi
 Updated the introduction and setup to first person, removed the Baseline label, and moved the model explanation into the setup dialog. Simplified the opponent description and removed the empty-history sentence, completed-match label, leaderboard footer, and standalone confidence explainer. The footer now reads “created just for fun by mayank” with a link to https://mayank.fyi. The setup dialog's leaderboard explanation now correctly describes each player's own score and record.
 
 The production build and diff checks passed. Desktop (1440 × 1050) and mobile (390 × 844) browser checks confirmed the requested copy removals, relocated model explanation, working setup dialog, correct footer link, eight leaderboard rows, and all 40 archive entries. No document, table, or dialog overflow and no browser errors were found. Both introductory layouts were visually inspected.
+
+## v1: opening scenarios
+
+- `python -m pytest -q`: **45 passed**. Coverage includes forced openings and their request counts, self-play openings, the new opponents from both seats, extending and replacing opponents without changing recorded matches, and publishing.
+- All 3 v1 runs (`bc6f79c6d8f0`, `1a47c3b89898`, `2fbbe57b0d35`) passed the verifier: 720 matches and 14,400 rounds. v0 is unchanged at 40 matches; its regenerated exports only add action sources.
+- `npm run build --prefix web` and `git diff --check` passed.

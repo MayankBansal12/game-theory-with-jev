@@ -45,13 +45,15 @@ def publish(run_ids, database=DEFAULT_DB, output=ROOT / "web/public/recorded"):
         csv_output = io.StringIO(newline="")
         writer = csv.writer(csv_output, lineterminator="\n")
         writer.writerow(["match", "opponent", "repetition", "round", "jev_action", "opponent_action",
-                         "jev_points", "opponent_points", "jev_total", "opponent_total"])
+                         "jev_points", "opponent_points", "jev_total", "opponent_total",
+                         "initial_move", "jev_action_source", "opponent_action_source"])
         for match in exported["matches"]:
             files[f"matches/{match['id']}.json"] = match
             for row in match["rounds"]:
                 writer.writerow([match["number"], match["opponent"], match["repetition"], row["number"],
                                  row["a"], row["b"], row["reward_a"], row["reward_b"],
-                                 row["score_a"], row["score_b"]])
+                                 row["score_a"], row["score_b"], run["config"].get("initial_move", "free"),
+                                 row["action_sources"]["a"], row["action_sources"]["b"]])
         files[f"runs/{run_id}/rounds.csv"] = csv_output.getvalue()
     files["runs.json"] = runs
     # Validate every run before writing. Remove only previously generated files
