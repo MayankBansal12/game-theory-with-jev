@@ -42,6 +42,12 @@ import type { Run, MatchDetail, Decision } from "./types";
 import { experiments } from "./experiments";
 import type { Experiment } from "./experiments";
 import { ExperimentFindings } from "./findings";
+import {
+  OpeningComparison,
+  ScenarioSelector,
+  VersionOverview,
+} from "./scenarios";
+import { V1Findings } from "./v1-findings";
 import "./style.css";
 
 const fmt = (n: number | null | undefined, digits = 2) =>
@@ -58,6 +64,10 @@ const names: Record<string, string> = {
   grim: "Grim Trigger",
   pavlov: "Win–Stay, Lose–Shift",
   another_jev: "Another Jev",
+  delayed_betrayal: "Delayed Betrayal",
+  bully: "Bully",
+  anti_tit_for_tat: "Anti–Tit for Tat",
+  adaptive: "Adaptive",
 };
 const icons: Record<string, string> = {
   cooperator: "+",
@@ -67,6 +77,10 @@ const icons: Record<string, string> = {
   tit_for_two_tats: "↔²",
   grim: "!",
   pavlov: "⇄",
+  delayed_betrayal: "6",
+  bully: "↯",
+  anti_tit_for_tat: "⇆",
+  adaptive: "↗",
 };
 const opponentTitle = (id: string) =>
   id === "another_jev" ? "another Jev" : names[id];
@@ -133,23 +147,29 @@ function SectionTitle({
     </div>
   );
 }
-function Header({ experiment }: { experiment: Experiment }) {
+function Header({
+  experiment,
+  runId,
+}: {
+  experiment: Experiment;
+  runId: string;
+}) {
   const navigate = useNavigate();
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to={`/?run=${experiment.runId}`} className="brand">
+        <Link to={`/?run=${runId}`} className="brand">
           Jev plays game theory
         </Link>
         <div className="select-wrap experiment-select">
           <select
-            aria-label="Experiment"
+            aria-label="Experiment version"
             value={experiment.runId}
             onChange={(e) => navigate(`/?run=${e.target.value}`)}
           >
             {experiments.map((item) => (
               <option key={item.runId} value={item.runId}>
-                Experiment {item.number}
+                v{item.number}
               </option>
             ))}
           </select>
@@ -224,6 +244,11 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
         {run.config.rounds} rounds. Both players choose before either sees the
         other’s move.
       </p>
+      <p>
+        {run.config.initial_move && run.config.initial_move !== "free"
+          ? `Jev’s first move is set to ${run.config.initial_move}. From round 2, Jev chooses freely and sees that opening like any other move. In self-play, only one Jev’s opening is set; the other chooses freely.`
+          : "Jev chooses freely from the first round."}
+      </p>
       <div className="payoff">
         <span>You / opponent</span>
         <b>Cooperate</b>
@@ -235,6 +260,11 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
         <span>5 / 0</span>
         <span>1 / 1</span>
       </div>
+      <p>
+        Jev’s move is the choice the API returns: the option with the highest
+        probability. Probabilities aren’t sampled, so a probability shown here
+        isn’t how often Jev would pick that move across repeated calls.
+      </p>
       <h3>What Jev sees</h3>
       <p>
         The rules, round number, total rounds, scores, and every previous move.
@@ -262,10 +292,10 @@ function Methods({ run, close }: { run: Run; close: () => void }) {
       <h3>Reading the results</h3>
       <p>
         Players are ranked by their own average points per round. Wins, draws,
-        and losses are from each player’s perspective. Jev’s row includes all
-        40 matches; the other rows cover five matches each against Jev. Only
-        completed matches count. These results describe this model, prompt,
-        and schedule.
+        and losses are from each player’s perspective. Jev’s row includes all{" "}
+        {run.totals.scheduled_matches} matches; the other rows cover{" "}
+        {run.config.repetitions} matches each against Jev. Only completed
+        matches count. These results describe this model, prompt, and schedule.
       </p>
       <div className="method-meta">
         <span>
@@ -536,11 +566,11 @@ function ExperimentSetup({
           <div className="setup-row">
             <h3>Jev’s objective</h3>
             <p>
-              I gave Jev one objective:{" "}
-              <strong>maximize its total points over the match.</strong> It
-              received the rules, scores, full history, and the current round
-              and total match length. It knew when the game would end, but not
-              which strategy it was facing.
+              Jev has one objective:{" "}
+              <strong>maximize its total points over the match.</strong> It gets
+              the rules, scores, full history, and the current round and total
+              match length. It knows when the game will end, but not which
+              strategy it’s facing.
             </p>
           </div>
           <div className="setup-row">
@@ -548,8 +578,8 @@ function ExperimentSetup({
             <p>
               The opponents covered always cooperate, always defect, random
               play, and strategies that respond to previous moves. There’s also
-              Jev versus another Jev, each following its own independent
-              strategy.
+              Jev versus another Jev: two copies of the same model, each playing
+              its own side.
             </p>
           </div>
         </div>
@@ -668,9 +698,14 @@ function Analysis({
   const [filter, setFilter] = useState("all"),
     [method, setMethod] = useState(false);
   const gamesRef = useRef<HTMLElement>(null);
+  const { hash } = useLocation();
+  useLayoutEffect(() => {
+    if (run && hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash, run?.id]);
+  const scenario = experiment.scenarios?.find((item) => item.runId === run?.id);
   useEffect(() => {
-    document.title = `Experiment ${experiment.number} | Jev plays game theory`;
-  }, [experiment.number]);
+    document.title = `v${experiment.number}${scenario ? ` · ${scenario.label}` : ""} | Jev plays game theory`;
+  }, [experiment.number, scenario?.label]);
   if (error) return <ErrorView message={error} />;
   if (!run)
     return loading ? <Loading /> : <ErrorView message="No experiments yet." />;
@@ -697,27 +732,30 @@ function Analysis({
     <>
       <div className="hero analysis-hero">
         <div>
-          <div className="eyebrow">
-            EXPERIMENT {experiment.number}
-          </div>
+          <div className="eyebrow">VERSION {experiment.number}</div>
           <h1>
-            The cooperation game<span>.</span>
+            {experiment.title ?? "The cooperation game"}
+            {!experiment.title?.endsWith("?") && <span>.</span>}
           </h1>
-          <p className="hero-intro">
-            So I put{" "}
-            <a
-              href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Jev
-            </a>{" "}
-            (TypeSafe’s System One model) into the Prisoner’s Dilemma to see if
-            it would choose to cooperate or defect. Across{" "}
-            {run.totals.scheduled_matches} matches of a setup inspired by game
-            theory, I tested how it responds to an opponent and how it performs
-            against other strategies.
-          </p>
+          {experiment.description ? (
+            <p className="hero-intro">{experiment.description}</p>
+          ) : (
+            <p className="hero-intro">
+              So I put{" "}
+              <a
+                href="https://typesafe.ai/blog/introducing-system-one-models-and-jev"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Jev
+              </a>{" "}
+              (TypeSafe’s System One model) into the Prisoner’s Dilemma to see
+              if it would choose to cooperate or defect. Across{" "}
+              {run.totals.scheduled_matches} matches of a setup inspired by game
+              theory, I tested how it responds to an opponent and how it
+              performs against other strategies.
+            </p>
+          )}
         </div>
         <time dateTime={run.created_at}>
           {new Date(run.created_at).toLocaleDateString("en-US", {
@@ -727,11 +765,21 @@ function Analysis({
           })}
         </time>
       </div>
+      <VersionOverview experiment={experiment} run={run} />
       <ExperimentSetup run={run} showMethods={() => setMethod(true)} />
-      <section className="findings-section" aria-labelledby="findings-title">
+      <OpeningComparison runId={run.id} />
+      {experiment.number === 1 && <V1Findings />}
+      <section
+        id="results"
+        className="findings-section"
+        aria-labelledby="findings-title"
+      >
         <div className="section-title">
-          <h2 id="findings-title">The results</h2>
+          <h2 id="findings-title">
+            {scenario ? `Results · ${scenario.label}` : "The results"}
+          </h2>
         </div>
+        <ScenarioSelector experiment={experiment} run={run} />
         <div className="stats">
           <div>
             <span>Jev’s average score</span>
@@ -770,7 +818,10 @@ function Analysis({
               <small>/ {t.scheduled_matches}</small>
             </strong>
             <span>
-              {num(t.rounds_played)} rounds · {num(t.decisions)} Jev decisions
+              {num(t.rounds_played)} rounds
+              {experiment.number === 0
+                ? ` · ${num(t.decisions)} Jev decisions`
+                : ""}
             </span>
           </div>
         </div>
@@ -787,17 +838,24 @@ function Analysis({
             </span>
           </div>
         )}
-        <p className="results-summary">
-          Jev earned <strong>{num(t.score_a)} points</strong> in total. It
-          defected in{" "}
-          <strong>
-            {num(defections)} of {num(completedRounds)} moves
-          </strong>
-          {completedRounds > 0 &&
-            ` (${((defections / completedRounds) * 100).toFixed(1)}%)`}
-          . Its score depended strongly on the opponent: cooperative matches
-          could earn more than matches it won.
-        </p>
+        {experiment.number === 1 ? (
+          <p className="results-summary">
+            These results cover all 20 rounds, including the opening. The
+            comparison above leaves out round 1.
+          </p>
+        ) : (
+          <p className="results-summary">
+            Jev earned <strong>{num(t.score_a)} points</strong> in total. It
+            defected in{" "}
+            <strong>
+              {num(defections)} of {num(completedRounds)} moves
+            </strong>
+            {completedRounds > 0 &&
+              ` (${((defections / completedRounds) * 100).toFixed(1)}%)`}
+            . Its score depended strongly on the opponent: cooperative matches
+            could earn more than matches it won.
+          </p>
+        )}
         <div className="results-heading">
           <div className="section-actions">
             <a
@@ -809,7 +867,11 @@ function Analysis({
             </a>
             <a
               className="text-button"
-              aria-label="Download full experiment data"
+              aria-label={
+                scenario
+                  ? `Download ${scenario.label} data`
+                  : "Download full experiment data"
+              }
               href={`/api/runs/${run.id}/export.json`}
             >
               <Code2 size={14} /> Full data
@@ -821,9 +883,9 @@ function Analysis({
           <ScoreChart run={run} />
         </div>
         <p className="results-caption">
-          Jev’s row combines all {run.totals.completed_matches} matches. Every
-          other player is scored only against Jev, so the rows cover different
-          opponents.
+          Jev’s row combines all {run.totals.completed_matches} matches
+          {scenario ? " in this scenario" : ""}. Every other player is scored
+          only against Jev, so the rows cover different opponents.
         </p>
       </section>
       <ExperimentFindings experiment={experiment} />
@@ -922,16 +984,20 @@ function Analysis({
 function DecisionInspector({
   decision,
   name,
+  forcedAction,
 }: {
   decision: Decision | null;
   name: string;
+  forcedAction?: "C" | "D";
 }) {
   const [tab, setTab] = useState("state"),
     [copied, setCopied] = useState(false);
   if (!decision)
     return (
       <div className="empty compact">
-        This opponent follows a fixed strategy.
+        {forcedAction
+          ? `Forced opening: ${forcedAction === "C" ? "cooperate" : "defect"}. There’s no model call, probability, or confidence for this move. Jev chooses freely from round 2.`
+          : "This opponent follows a fixed strategy."}
       </div>
     );
   const value =
@@ -1372,6 +1438,14 @@ function Replay() {
           )}
           <DecisionInspector
             decision={current.decisions[seat]}
+            forcedAction={
+              seat === "a" &&
+              current.number === 1 &&
+              match.config.initial_move &&
+              match.config.initial_move !== "free"
+                ? current.a
+                : undefined
+            }
             name={seat === "a" ? "Jev" : "Another Jev"}
           />
         </div>
@@ -1394,7 +1468,13 @@ function ExperimentApp() {
   const { pathname } = useLocation();
   useEffect(() => {
     let active = true;
-    Promise.all(experiments.map((item) => api<Run>(`/api/runs/${item.runId}`)))
+    Promise.all(
+      experiments.flatMap((item) =>
+        (item.scenarios ?? [item]).map((scenario) =>
+          api<Run>(`/api/runs/${scenario.runId}`),
+        ),
+      ),
+    )
       .then((data) => {
         if (active) setRuns(data);
       })
@@ -1411,11 +1491,16 @@ function ExperimentApp() {
   const matchRun = runs.find((r) =>
     r.matches.some((m) => pathname === `/matches/${m.id}`),
   );
+  const requestedRunId = matchRun?.id ?? params.get("run");
   const experiment =
-    experiments.find(
-      (item) => item.runId === (matchRun?.id ?? params.get("run")),
-    ) ?? experiments[0];
-  const run = runs.find((r) => r.id === experiment.runId);
+    experiments.find((item) =>
+      (item.scenarios ?? [item]).some(
+        (scenario) => scenario.runId === requestedRunId,
+      ),
+    ) ?? experiments[experiments.length - 1];
+  const run =
+    runs.find((r) => r.id === requestedRunId) ??
+    runs.find((r) => r.id === experiment.runId);
   useEffect(() => {
     if (!run || !["running", "queued"].includes(run.status)) return;
     const source = new EventSource(`/api/runs/${run.id}/events`);
@@ -1429,14 +1514,14 @@ function ExperimentApp() {
   return (
     <>
       <ScrollToTop />
-      <Header experiment={experiment} />
+      <Header experiment={experiment} runId={run?.id ?? experiment.runId} />
       <main>
         <Routes>
           <Route
             path="/"
             element={
               <Analysis
-                key={experiment.runId}
+                key={run?.id ?? experiment.runId}
                 run={run}
                 experiment={experiment}
                 error={error}

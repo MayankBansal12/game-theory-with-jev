@@ -30,7 +30,7 @@ const meanAt = (matches: RecordedMatch[], index: number) =>
 
 export function ExperimentFindings({ experiment }: { experiment: Experiment }) {
   const data = experiment.analysis;
-  if (!data || !data.matches.length) return null;
+  if (!data || !data.matches.length || !experiment.findings) return null;
   const { matches, rounds } = data;
   const openingC = matches.filter((m) => m.moves[0] === "C").length;
   const returns = matches.reduce(

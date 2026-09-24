@@ -24,7 +24,7 @@ The opponents were Always Cooperate, Always Defect, Random, Tit for Tat, Tit for
 
 Jev returns a choice with probabilities and a confidence score. I recorded every move, then compared the resulting behavior, scores, and preferences.
 
-## What I found
+## What I found in Experiment 0
 
 Jev averaged **2.28 points per round**, cooperated in **20.4% of rounds**, and finished with **23 wins, 14 draws, and 3 losses**.
 
@@ -40,6 +40,17 @@ Jev’s row combines all 40 matches. Each other player’s row covers five match
 The archive lets you replay each match and inspect the recorded decisions. Here, Jev defects throughout a match against Tit for Tat and wins 24 to 19.
 
 ![Jev versus Tit for Tat at round 20, showing the 24–19 final score, cumulative points, and every move](docs/screenshots/experiment-0-tit-for-tat.png)
+
+## v1: can cooperation recover?
+
+In v0, Jev never went back to cooperating once it defected. So for v1, I wanted to see if the first move changes what follows. I added 4 opponents (Delayed Betrayal, Bully, Anti–Tit for Tat, and Adaptive), for 12 in total, and ran 3 scenarios: Jev picks its own opening, cooperate first, or defect first. After round 1, every move is Jev’s.
+
+- **Schedule:** 20 matches against each of 12 opponents, per scenario. That is 720 matches and 14,400 rounds.
+- **Once Jev opened with defection, it never stopped.** That held in all 412 of those matches.
+- **The only recoveries came against Delayed Betrayal.** It cooperates for 5 rounds, defects once in round 6, then goes back to cooperating. 12 of the 29 Jevs still cooperating went back to cooperating after retaliating once.
+- **Cooperate-first scored the most points. Defect-first won the most matches.** Cooperating first earned 8.5% more points with less than half as many wins.
+
+See the [v1 study notes](docs/v1.md) for the design and results.
 
 ## What this experiment can tell us
 

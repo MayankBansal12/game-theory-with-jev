@@ -17,12 +17,33 @@ npm run build --prefix web
 To run new matches, put `TYPESAFE_API_KEY` in `.env.local`. It stays on the server. Viewing saved results does not need a key.
 
 ```bash
-# Full run: 40 matches, 800 rounds, 900 Jev decisions.
-.venv/bin/python -m server.cli run --name 'First encounters'
+# v1 free-opening scenario: 240 matches, 4,800 rounds, 5,200 model decisions.
+.venv/bin/python -m server.cli run --name 'Twenty repetitions — free opening'
+
+# v1 forced-opening scenarios: 240 matches and 4,960 model decisions each.
+.venv/bin/python -m server.cli run --initial-move cooperate --name 'Cooperate first'
+.venv/bin/python -m server.cli run --initial-move defect --name 'Defect first'
+
+# Inspect the schedule without creating records or calling the API.
+.venv/bin/python -m server.cli run --initial-move cooperate --dry-run
+
+# Reproduce the original schedule (new model calls, not the original results).
+.venv/bin/python -m server.cli run --repetitions 5 --name 'Pilot replication' \
+  --opponents cooperator defector random tit_for_tat tit_for_two_tats grim pavlov another_jev
 
 # Small run: 2 matches, 6 joint rounds, 9 Jev decisions.
 .venv/bin/python -m server.cli run --rounds 3 --repetitions 1 \
   --opponents tit_for_tat another_jev --name 'Quick check'
+
+# Append only Delayed Betrayal to a completed eight-opponent run.
+# Existing decisions, match IDs, and scores are preserved. Resume runs the new matches.
+.venv/bin/python -m server.cli extend RUN_ID --opponent delayed_betrayal
+
+# Add a new opponent with a larger explicit cap, then resume.
+.venv/bin/python -m server.cli extend RUN_ID --opponent bully --max-requests 6400
+
+# Replace a completed opponent, preserving its recordings in an unpublished local archive.
+.venv/bin/python -m server.cli replace RUN_ID --old-opponent joss --new-opponent adaptive
 
 # Resume the same run after an interruption, reusing saved decisions.
 .venv/bin/python -m server.cli resume RUN_ID
@@ -32,11 +53,11 @@ To run new matches, put `TYPESAFE_API_KEY` in `.env.local`. It stays on the serv
 .venv/bin/python -m server.cli export RUN_ID data/export.json
 ```
 
-Run only one runner for a given run at a time. Published experiments are listed in `web/src/experiments.ts`. Add a saved run ID, experiment number, recorded analysis snapshot, and its own findings and constraints there, then rebuild to include it in the header selector. The Experiment 0 snapshot in `web/src/recorded/experiment-0.json` contains the 40 matches’ recorded moves, both players’ cumulative scores, and the primary Jev seat’s choice probabilities and confidence. The cooperation-by-round, move-pattern, reward, self-play, and preference figures are calculated from this snapshot; new model calls are not needed to render them. The connection-check run remains stored but is excluded from the page. Published active runs update live. The default request cap is 1,100 attempts. Calls have 30-second timeouts, at most three attempts, and at most four concurrent requests. Authentication and invalid-response errors stop that match without retries. An interrupted request whose response was never saved may need another API call on resume.
+Run only one runner for a given run at a time. The two versions are listed in `web/src/experiments.ts`. v0 has one run; v1 groups three saved runs in its `scenarios` list. The header selects a version, and v1’s scenario tabs select the run. Existing `?run=` links and direct match URLs still work. The default page opens v1. Keep a version’s findings and constraints tied to its own records. The Experiment 0 snapshot in `web/src/recorded/experiment-0.json` contains the 40 matches’ recorded moves, both players’ cumulative scores, and the primary Jev seat’s choice probabilities and confidence. The cooperation-by-round, move-pattern, reward, self-play, and preference figures are calculated from this snapshot; new model calls are not needed to render them. The connection-check run remains stored but is excluded from the page. Published active runs update live. The default request cap is 6,400 attempts per run, configurable with `--max-requests`. Forced openings consume no requests. Historical runs retain their saved request caps. Calls have 30-second timeouts, at most three attempts, and at most four concurrent requests. Authentication and invalid-response errors stop that match without retries. An interrupted request whose response was never saved may need another API call on resume.
 
 ## Deploy to Vercel
 
-Vercel serves the built page and a static copy of the published results. It needs no Python server, database, API key, or Jev calls. The checked-in files under `web/public/recorded/` contain Experiment 0’s run summary, all 40 replays with exact inputs and responses, and the CSV and JSON downloads. Only explicitly selected runs are exported.
+Vercel serves the built page and a static copy of the published results. It needs no Python server, database, API key, or Jev calls. The checked-in files under `web/public/recorded/` contain v0 and all three v1 scenario summaries, 760 replays with exact inputs and responses, and the CSV and JSON downloads. Only explicitly selected runs are exported.
 
 To refresh the public data after recording a new experiment:
 
@@ -44,7 +65,18 @@ To refresh the public data after recording a new experiment:
 .venv/bin/python -m server.publish --run-id 33654f59990b
 ```
 
-Repeat `--run-id` for every experiment that should remain published, and add its analysis snapshot and metadata to `web/src/experiments.ts`. The exporter opens SQLite read-only, verifies each completed run, and removes previously generated files for runs no longer selected.
+Repeat `--run-id` for every scenario run that should remain published, and group its metadata under the appropriate version in `web/src/experiments.ts`. To regenerate the current opening comparison and all published archives:
+
+```bash
+.venv/bin/python -m server.compare \
+  --run-id bc6f79c6d8f0 --run-id 1a47c3b89898 --run-id 2fbbe57b0d35 \
+  --output web/src/recorded/opening-study.json
+.venv/bin/python -m server.publish \
+  --run-id 33654f59990b --run-id bc6f79c6d8f0 \
+  --run-id 1a47c3b89898 --run-id 2fbbe57b0d35
+```
+
+See [the study design and results](v1.md) for intervention semantics, request counts, comparison measures, and the Delayed Betrayal rule. The exporter opens SQLite read-only, verifies each completed run, and removes previously generated files for runs no longer selected.
 
 ```bash
 vercel link --project game-theory-with-jev --scope mayank12 --yes
